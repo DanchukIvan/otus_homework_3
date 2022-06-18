@@ -5,7 +5,7 @@ from airflow import DAG, settings
 from airflow.operators.python import PythonOperator
 from airflow_clickhouse_plugin.hooks.clickhouse_hook import ClickHouseHook
 from airflow.operators.email import EmailOperator
-from airflow.operators.empty import EmptyOperator
+from airflow.operators.dummy import DummyOperator
 from airflow.models import Connection
 
 conn = Connection(conn_id='airflow_db', host='rc1a-agt6jfik899akldm.mdb.yandexcloud.net', login='dis', password="otuseducation", schema='airflow_db',\
@@ -32,7 +32,7 @@ def _write_to_db(connection, conn_id, database, **context):
     ch_hook.run(f'INSERT INTO {{database}}.bitcoin_quot_buffer VALUES', d_list)
     
 
-start_dag = EmptyOperator(task_id='starting_dag', dag=dag)
+start_dag = DummyOperator(task_id='starting_dag', dag=dag)
 
 get_quote = PythonOperator(task_id='get_bitcoin_quote', python_callable=_get_btc_quoting, dag=dag)
 
@@ -41,7 +41,7 @@ write_quote = PythonOperator(task_id='write_to_ch_bitcoin_quote', python_callabl
 
 #send_email = EmailOperator(to='isdanchu@yandex.ru', subject='DAG done', html_content='Привет! Все задачи выполнены, проверяй')
 
-detect_failed_dag = EmptyOperator(task_id='detect_failed_dag', trigger_rule='one_failed', dag=dag)
+detect_failed_dag = DummyOperator(task_id='detect_failed_dag', trigger_rule='one_failed', dag=dag)
 
 start_dag >> get_quote >> write_quote >> detect_failed_dag
 
